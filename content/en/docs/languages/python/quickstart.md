@@ -7,23 +7,23 @@ weight: 10
 
 ### Prerequisites
 
-- Python 3.5 or higher
+- Python 3.7 or higher
 - `pip` version 9.0.1 or higher
 
 If necessary, upgrade your version of `pip`:
 
 ```sh
-$ python -m pip install --upgrade pip
+python -m pip install --upgrade pip
 ```
 
 If you cannot upgrade `pip` due to a system-owned installation, you can
 run the example in a virtualenv:
 
 ```sh
-$ python -m pip install virtualenv
-$ virtualenv venv
-$ source venv/bin/activate
-$ python -m pip install --upgrade pip
+python -m pip install virtualenv
+virtualenv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
 ```
 
 #### gRPC
@@ -31,13 +31,13 @@ $ python -m pip install --upgrade pip
 Install gRPC:
 
 ```sh
-$ python -m pip install grpcio
+python -m pip install grpcio
 ```
 
 Or, to install it system wide:
 
 ```sh
-$ sudo python -m pip install grpcio
+sudo python -m pip install grpcio
 ```
 
 #### gRPC tools
@@ -53,7 +53,7 @@ tutorials and your own projects.
 To install gRPC tools, run:
 
 ```sh
-$ python -m pip install grpcio-tools
+python -m pip install grpcio-tools
 ```
 
 ### Download the example
@@ -65,9 +65,9 @@ and other tutorials):
 
 ```sh
 # Clone the repository to get the example code:
-$ git clone -b {{< param grpc_vers.core >}} https://github.com/grpc/grpc
+git clone -b {{< param grpc_vers.core >}} --depth 1 --shallow-submodules https://github.com/grpc/grpc
 # Navigate to the "hello, world" Python example:
-$ cd grpc/examples/python/helloworld
+cd grpc/examples/python/helloworld
 ```
 
 ### Run a gRPC application
@@ -77,13 +77,13 @@ From the `examples/python/helloworld` directory:
 1. Run the server:
 
    ```sh
-   $ python greeter_server.py
+   python greeter_server.py
    ```
 
 2. From another terminal, run the client:
 
    ```sh
-   $ python greeter_client.py
+   python greeter_client.py
    ```
 
 Congratulations! You've just run a client-server application with gRPC.
@@ -151,7 +151,7 @@ service definition.
 From the `examples/python/helloworld` directory, run:
 
 ```sh
-$ python -m grpc_tools.protoc -I../../protos --python_out=. --grpc_python_out=. ../../protos/helloworld.proto
+python -m grpc_tools.protoc -I../../protos --python_out=. --pyi_out=. --grpc_python_out=. ../../protos/helloworld.proto
 ```
 
 This regenerates `helloworld_pb2.py` which contains our generated request and
@@ -171,11 +171,11 @@ this:
 ```py
 class Greeter(helloworld_pb2_grpc.GreeterServicer):
 
-  def SayHello(self, request, context):
-    return helloworld_pb2.HelloReply(message='Hello, %s!' % request.name)
+    def SayHello(self, request, context):
+        return helloworld_pb2.HelloReply(message=f"Hello, {request.name}!")
 
-  def SayHelloAgain(self, request, context):
-    return helloworld_pb2.HelloReply(message='Hello again, %s!' % request.name)
+    def SayHelloAgain(self, request, context):
+        return helloworld_pb2.HelloReply(message=f"Hello again, {request.name}!")
 ...
 ```
 
@@ -185,12 +185,12 @@ In the same directory, open `greeter_client.py`. Call the new method like this:
 
 ```py
 def run():
-  channel = grpc.insecure_channel('localhost:50051')
-  stub = helloworld_pb2_grpc.GreeterStub(channel)
-  response = stub.SayHello(helloworld_pb2.HelloRequest(name='you'))
-  print("Greeter client received: " + response.message)
-  response = stub.SayHelloAgain(helloworld_pb2.HelloRequest(name='you'))
-  print("Greeter client received: " + response.message)
+    with grpc.insecure_channel('localhost:50051') as channel:
+        stub = helloworld_pb2_grpc.GreeterStub(channel)
+        response = stub.SayHello(helloworld_pb2.HelloRequest(name='you'))
+        print("Greeter client received: " + response.message)
+        response = stub.SayHelloAgain(helloworld_pb2.HelloRequest(name='you'))
+        print("Greeter client received: " + response.message)
 ```
 
 #### Run!
@@ -200,13 +200,13 @@ Just like we did before, from the `examples/python/helloworld` directory:
  1. Run the server:
 
     ```sh
-    $ python greeter_server.py
+    python greeter_server.py
     ```
 
  2. From another terminal, run the client:
 
     ```sh
-    $ python greeter_client.py
+    python greeter_client.py
     ```
 
 ### What's next
