@@ -8,19 +8,19 @@ This tutorial provides a basic C++ programmer's introduction to working with gRP
 
 By walking through this example you'll learn how to:
 
-- Define a service in a .proto file.
+- Define a service in a `.proto` file.
 - Generate server and client code using the protocol buffer compiler.
 - Use the C++ gRPC API to write a simple client and server for your service.
 
 It assumes that you have read the [Introduction to gRPC](/docs/what-is-grpc/introduction/) and are familiar
 with [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). Note
+buffers](https://protobuf.dev/overview). Note
 that the example in this tutorial uses the proto3 version of the protocol
 buffers language: you can find out more in
 the [proto3 language
-guide](https://developers.google.com/protocol-buffers/docs/proto3) and [C++
+guide](https://protobuf.dev/programming-guides/proto3) and [C++
 generated code
-guide](https://developers.google.com/protocol-buffers/docs/reference/cpp-generated).
+guide](https://protobuf.dev/reference/cpp/cpp-generated).
 
 ### Why use gRPC?
 
@@ -36,25 +36,25 @@ Get the example code and build gRPC:
  2. From the repo folder, change to the route guide example directory:
 
     ```sh
-    $ cd examples/cpp/route_guide
+    cd examples/cpp/route_guide
     ```
  3. Run `cmake`
 
     ```sh
-    $ mkdir -p cmake/build
-    $ cd cmake/build
-    $ cmake -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR ../..
+    mkdir -p cmake/build
+    cd cmake/build
+    cmake -DCMAKE_PREFIX_PATH=$MY_INSTALL_DIR ../..
     ```
 
 ### Defining the service
 
 Our first step (as you'll know from the [Introduction to gRPC](/docs/what-is-grpc/introduction/)) is to
 define the gRPC *service* and the method *request* and *response* types using
-[protocol buffers](https://developers.google.com/protocol-buffers/docs/overview).
-You can see the complete .proto file in
+[protocol buffers](https://protobuf.dev/overview).
+You can see the complete `.proto` file in
 [`examples/protos/route_guide.proto`](https://github.com/grpc/grpc/blob/{{< param grpc_vers.core >}}/examples/protos/route_guide.proto).
 
-To define a service, you specify a named `service` in your .proto file:
+To define a service, you specify a named `service` in your `.proto` file:
 
 ```protobuf
 service RouteGuide {
@@ -132,7 +132,7 @@ message Point {
 
 ### Generating client and server code
 
-Next we need to generate the gRPC client and server interfaces from our .proto
+Next we need to generate the gRPC client and server interfaces from our `.proto`
 service definition. We do this using the protocol buffer compiler `protoc` with
 a special gRPC C++ plugin.
 
@@ -142,14 +142,14 @@ you want to run this yourself, make sure you've installed protoc and followed
 the gRPC code [installation instructions](https://github.com/grpc/grpc/blob/{{< param grpc_vers.core >}}/src/cpp/README.md#cmake) first):
 
 ```sh
-$ make route_guide.grpc.pb.o
+make route_guide.grpc.pb.o
 ```
 
 which actually runs:
 
 ```sh
-$ protoc -I ../../protos --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ../../protos/route_guide.proto
-$ protoc -I ../../protos --cpp_out=. ../../protos/route_guide.proto
+protoc -I ../../protos --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` ../../protos/route_guide.proto
+protoc -I ../../protos --cpp_out=. ../../protos/route_guide.proto
 ```
 
 Running this command generates the following files in your current directory:
@@ -283,17 +283,17 @@ Finally, let's look at our bidirectional streaming RPC `RouteChat()`.
 
 ```cpp
 Status RouteChat(ServerContext* context,
-                 ServerReaderWriter<RouteNote, RouteNote>* stream) override {
-  std::vector<RouteNote> received_notes;
+                  ServerReaderWriter<RouteNote, RouteNote>* stream) override {
   RouteNote note;
   while (stream->Read(&note)) {
-    for (const RouteNote& n : received_notes) {
+    std::unique_lock<std::mutex> lock(mu_);
+    for (const RouteNote& n : received_notes_) {
       if (n.location().latitude() == note.location().latitude() &&
           n.location().longitude() == note.location().longitude()) {
         stream->Write(n);
       }
     }
-    received_notes.push_back(note);
+    received_notes_.push_back(note);
   }
 
   return Status::OK;
@@ -306,6 +306,9 @@ client-streaming and server-streaming methods. Although each side will always
 get the other's messages in the order they were written, both the client and
 server can read and write in any order — the streams operate completely
 independently.
+
+Note that since `received_notes_` is an instance variable and can be accessed by
+multiple threads, we use a mutex lock here to guarantee exclusive access.
 
 #### Starting the server
 
@@ -359,7 +362,7 @@ grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
 In order to set additional options for the *channel*, use the `grpc::CreateCustomChannel()` api with any special channel arguments - `grpc::ChannelArguments`.
 {{% /alert %}}
 
-Now we can use the channel to create our stub using the `NewStub` method provided in the `RouteGuide` class we generated from our .proto.
+Now we can use the channel to create our stub using the `NewStub` method provided in the `RouteGuide` class we generated from our `.proto`.
 
 ```cpp
 public:
@@ -499,19 +502,19 @@ independently.
 Build the client and server:
 
 ```sh
-$ make
+make
 ```
 
 Run the server:
 
 ```sh
-$ ./route_guide_server
+./route_guide_server --db_path=path/to/route_guide_db.json
 ```
 
 From a different terminal, run the client:
 
 ```sh
-$ ./route_guide_client
+./route_guide_client --db_path=path/to/route_guide_db.json
 ```
 
 [build and locally install gRPC from source]: {{< relref "quickstart#install-grpc" >}}

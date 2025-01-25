@@ -1,4 +1,5 @@
 ---
+title: gRPC
 features:
   - title: Simple service definition
     description: Define your service using Protocol Buffers, a powerful binary serialization toolset and language
@@ -32,8 +33,7 @@ Learn more
 - [C++]({{< relref "/docs/languages/cpp/quickstart" >}})
 - [Java]({{< relref "/docs/languages/java/quickstart" >}})
 - [Python]({{< relref "/docs/languages/python/quickstart" >}})
-- [C#]({{< relref "/docs/languages/csharp/quickstart" >}})
-- [<i class="fas fa-ellipsis-h"></i>]({{< relref "languages" >}})
+- [<i class="fas fa-ellipsis-h" aria-label="Supported languages"></i>]({{< relref "languages" >}})
 </div>
 {{< /blocks/cover >}}
 
@@ -49,9 +49,18 @@ health checking and authentication. It is also applicable in last mile of
 distributed computing to connect devices, mobile applications and browsers to
 backend services.
 </section>
+<div class="youtube-video-center">
+    <div class="video-wrapper">
+        <iframe 
+            src="https://www.youtube.com/embed/5dMK5OW6WSw" 
+            title="Ten Years of gRPC" 
+            frameborder="0" 
+            allowfullscreen>
+        </iframe>
+    </div>
+</div>
 
 {{< home/features >}}
 {{< home/used-by >}}
 {{< home/cncf >}}
-
 </div>

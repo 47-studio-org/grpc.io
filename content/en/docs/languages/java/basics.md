@@ -9,19 +9,19 @@ working with gRPC.
 
 By walking through this example you'll learn how to:
 
-- Define a service in a .proto file.
+- Define a service in a `.proto` file.
 - Generate server and client code using the protocol buffer compiler.
 - Use the Java gRPC API to write a simple client and server for your service.
 
 It assumes that you have read the [Introduction to gRPC](/docs/what-is-grpc/introduction/) and are familiar
 with [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). Note
+buffers](https://protobuf.dev/overview). Note
 that the example in this tutorial uses the
 [proto3](https://github.com/google/protobuf/releases) version of the protocol
 buffers language: you can find out more in the [proto3 language
-guide](https://developers.google.com/protocol-buffers/docs/proto3) and [Java
+guide](https://protobuf.dev/programming-guides/proto3) and [Java
 generated code
-guide](https://developers.google.com/protocol-buffers/docs/reference/java-generated).
+guide](https://protobuf.dev/reference/java/java-generated).
 
 ### Why use gRPC?
 
@@ -35,13 +35,13 @@ To download the example, clone the latest release in `grpc-java` repository by
 running the following command:
 
 ```sh
-$ git clone -b {{< param grpc_vers.java >}} https://github.com/grpc/grpc-java.git
+git clone -b {{< param grpc_vers.java >}} --depth 1 https://github.com/grpc/grpc-java
 ```
 
 Then change your current directory to `grpc-java/examples`:
 
 ```sh
-$ cd grpc-java/examples
+cd grpc-java/examples
 ```
 
 ### Defining the service
@@ -49,25 +49,25 @@ $ cd grpc-java/examples
 Our first step (as you'll know from the [Introduction to gRPC](/docs/what-is-grpc/introduction/)) is to
 define the gRPC *service* and the method *request* and *response* types using
 [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). You can
-see the complete .proto file in
+buffers](https://protobuf.dev/overview). You can
+see the complete `.proto` file in
 [grpc-java/examples/src/main/proto/route_guide.proto](https://github.com/grpc/grpc-java/blob/master/examples/src/main/proto/route_guide.proto).
 
 As we're generating Java code in this example, we've specified a `java_package`
-file option in our .proto:
+file option in our `.proto`:
 
 ```proto
 option java_package = "io.grpc.examples.routeguide";
 ```
 
 This specifies the package we want to use for our generated Java classes. If no
-explicit `java_package` option is given in the .proto file, then by default the
+explicit `java_package` option is given in the `.proto` file, then by default the
 proto package (specified using the "package" keyword) will be used. However,
 proto packages generally do not make good Java packages since proto packages are
 not expected to start with reverse domain names. If we generate code in another
-language from this .proto, the `java_package` option has no effect.
+language from this `.proto`, the `java_package` option has no effect.
 
-To define a service, we specify a named `service` in the .proto file:
+To define a service, we specify a named `service` in the `.proto` file:
 
 ```proto
 service RouteGuide {
@@ -145,7 +145,7 @@ message Point {
 
 ### Generating client and server code
 
-Next we need to generate the gRPC client and server interfaces from our .proto
+Next we need to generate the gRPC client and server interfaces from our `.proto`
 service definition. We do this using the protocol buffer compiler `protoc` with
 a special gRPC Java plugin. You need to use the
 [proto3](https://github.com/google/protobuf/releases) compiler (which supports
@@ -195,7 +195,7 @@ private static class RouteGuideService extends RouteGuideGrpc.RouteGuideImplBase
 }
 ```
 
-#### Simple RPC
+##### Simple RPC
 
 `RouteGuideService` implements all our service methods. Let's
 look at the simplest method first, `GetFeature()`, which just gets a `Point` from
@@ -457,7 +457,7 @@ We use a `ManagedChannelBuilder` to create the channel.
 
 Now we can use the channel to create our stubs using the `newStub` and
 `newBlockingStub` methods provided in the `RouteGuideGrpc` class we generated
-from our .proto.
+from our `.proto`.
 
 ```java
 blockingStub = RouteGuideGrpc.newBlockingStub(channel);

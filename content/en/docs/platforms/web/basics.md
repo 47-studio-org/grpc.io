@@ -15,7 +15,7 @@ By walking through this example you'll learn how to:
 - Use the gRPC-Web API to write a simple client for your service.
 
 It assumes a passing familiarity with [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview).
+buffers](https://protobuf.dev/overview).
 
 ### Why use gRPC and gRPC-Web? {#why-grpc}
 
@@ -78,6 +78,11 @@ To forward the gRPC requests to the backend server, we need a block like
 this:
 
 ```yaml
+admin:
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
+
+static_resources:
   listeners:
   - name: listener_0
     address:
@@ -85,7 +90,8 @@ this:
     filter_chains:
     - filters:
       - name: envoy.http_connection_manager
-        config:
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
           codec_type: auto
           stat_prefix: ingress_http
           route_config:
@@ -98,14 +104,30 @@ this:
                 route: { cluster: echo_service }
           http_filters:
           - name: envoy.grpc_web
-          - name: envoy.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
   - name: echo_service
     connect_timeout: 0.25s
-    type: logical_dns
-    http2_protocol_options: {}
-    lb_policy: round_robin
-    hosts: [{ socket_address: { address: node-server, port_value: 9090 }}]
+    type: LOGICAL_DNS
+    typed_extension_protocol_options:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        explicit_http_config:
+          http2_protocol_options: {}
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: echo_service
+      endpoints:
+        - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: node-server
+                  port_value: 9090
 ```
 
 You may also need to add some CORS setup to make sure the browser can request
@@ -120,7 +142,7 @@ To generate the protobuf message classes from our `echo.proto`, run the
 following command:
 
 ```sh
-$ protoc -I=$DIR echo.proto \
+protoc -I=$DIR echo.proto \
   --js_out=import_style=commonjs:$OUT_DIR
 ```
 
@@ -133,14 +155,14 @@ protoc plugin. To compile the plugin `protoc-gen-grpc-web`, you need to run
 this from the repo's root directory:
 
 ```sh
-$ cd grpc-web
-$ sudo make install-plugin
+cd grpc-web
+sudo make install-plugin
 ```
 
 To generate the service client stub file, run this command:
 
 ```sh
-$ protoc -I=$DIR echo.proto \
+protoc -I=$DIR echo.proto \
   --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$OUT_DIR
 ```
 
@@ -192,11 +214,11 @@ Finally, putting all these together, we can compile all the relevant JS files
 into one single JS library that can be used in the browser.
 
 ```sh
-$ npm install
-$ npx webpack client.js
+npm install
+npx webpack client.js
 ```
 
 Now embed `dist/main.js` into your project and see it in action!
 
-[protobuf documentation]:https://developers.google.com/protocol-buffers/
+[protobuf documentation]:https://protobuf.dev/
 [main page]:/docs/

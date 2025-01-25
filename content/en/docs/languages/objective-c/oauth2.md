@@ -21,21 +21,19 @@ token_.
 
 ### Example code and setup {#setup}
 
-The example code for our tutorial is in
-[gprc/examples/objective-c/auth_sample](https://github.com/grpc/grpc/tree/
-{{< param grpc_vers.core >}}/examples/objective-c/auth_sample). To
+For the example source, see [gprc/examples/objective-c/auth_sample][]. To
 download the example, clone this repository by running the following commands:
 
 ```sh
-$ git clone -b {{< param grpc_vers.core >}} https://github.com/grpc/grpc
-$ cd grpc
-$ git submodule update --init
+git clone -b {{< param grpc_vers.core >}} --depth 1 --shallow-submodules https://github.com/grpc/grpc
+cd grpc
+git submodule update --init
 ```
 
 Then change your current directory to `examples/objective-c/auth_sample`:
 
 ```sh
-$ cd examples/objective-c/auth_sample
+cd examples/objective-c/auth_sample
 ```
 
 Our example is a simple application with two views. The first view lets a user
@@ -67,7 +65,7 @@ To try the sample app, first have CocoaPods generate and install the client libr
 files:
 
 ```sh
-$ pod install
+pod install
 ```
 
 (This might have to compile OpenSSL, which takes around 15 minutes if CocoaPods
@@ -177,3 +175,5 @@ GRPCUnaryProtoCall *rpc = [client unaryCallWithMessage:myRequestMessage
 When the call starts, it will call the `TokenProvider` instance's `getTokenWithHandler:` method with
 a callback `handler` and waits for the callback. The `TokenProvider` instance may call the handler
 at any time to provide the token for this call and resume the call process.
+
+[gprc/examples/objective-c/auth_sample]: https://github.com/grpc/grpc/tree/{{< param grpc_vers.core >}}/examples/objective-c/auth_sample
