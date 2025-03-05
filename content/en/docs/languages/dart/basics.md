@@ -10,16 +10,16 @@ gRPC.
 
 By walking through this example you'll learn how to:
 
-- Define a service in a .proto file.
+- Define a service in a `.proto` file.
 - Generate server and client code using the protocol buffer compiler.
 - Use the Dart gRPC API to write a simple client and server for your service.
 
 It assumes that you have read the [Introduction to gRPC](/docs/what-is-grpc/introduction/) and are familiar
-with [protocol buffers](https://developers.google.com/protocol-buffers/docs/overview). Note that the
+with [protocol buffers](https://protobuf.dev/overview). Note that the
 example in this tutorial uses the proto3 version of the protocol buffers
 language: you can find out more in the
 [proto3 language
-guide](https://developers.google.com/protocol-buffers/docs/proto3).
+guide](https://protobuf.dev/programming-guides/proto3).
 
 ### Why use gRPC?
 
@@ -33,13 +33,13 @@ To download the example, clone the `grpc-dart` repository by running the followi
 command:
 
 ```sh
-$ git clone https://github.com/grpc/grpc-dart.git
+git clone --depth 1 https://github.com/grpc/grpc-dart
 ```
 
 Then change your current directory to `grpc-dart/example/route_guide`:
 
 ```sh
-$ cd grpc-dart/example/route_guide
+cd grpc-dart/example/route_guide
 ```
 
 You should have already installed the tools needed to generate client and server
@@ -49,11 +49,11 @@ interface code -- if you haven't, see [Quick start][] for setup instructions.
 
 Our first step (as you'll know from the [Introduction to gRPC](/docs/what-is-grpc/introduction/)) is to
 define the gRPC *service* and the method *request* and *response* types using
-[protocol buffers](https://developers.google.com/protocol-buffers/docs/overview). You can see the
-complete .proto file in
+[protocol buffers](https://protobuf.dev/overview). You can see the
+complete `.proto` file in
 [`example/route_guide/protos/route_guide.proto`](https://github.com/grpc/grpc-dart/blob/master/example/route_guide/protos/route_guide.proto).
 
-To define a service, you specify a named `service` in your .proto file:
+To define a service, you specify a named `service` in your `.proto` file:
 
 ```proto
 service RouteGuide {
@@ -290,8 +290,7 @@ Future<RouteSummary> recordRoute(
   await for (var location in request) {
     if (!timer.isRunning) timer.start();
     pointCount++;
-    final feature = featuresDb.firstWhere((f) => f.location == location,
-        orElse: () => null);
+    final feature = featuresDb.firstWhereOrNull((f) => f.location == location);
     if (feature != null) {
       featureCount++;
     }
@@ -351,7 +350,7 @@ do this for our `RouteGuide` service:
 
 ```dart
 Future<void> main(List<String> args) async {
-  final server = grpc.Server([RouteGuideService()]);
+  final server = grpc.Server.create([RouteGuideService()]);
   await server.serve(port: 8080);
   print('Server listening...');
 }
@@ -359,7 +358,7 @@ Future<void> main(List<String> args) async {
 
 To build and start a server, we:
 
-1. Create an instance of the gRPC server using `grpc.Server()`,
+1. Create an instance of the gRPC server using `grpc.Server.create()`,
    giving a list of service implementations.
 1. Call `serve()` on the server to start listening for requests, optionally passing
    in the address and port to listen on. The server will continue to serve requests
@@ -508,25 +507,25 @@ write in any order — the streams operate completely independently.
 Work from the example directory:
 
 ```sh
-$ cd example/route_guide
+cd example/route_guide
 ```
 
 Get packages:
 
 ```sh
-$ dart pub get
+dart pub get
 ```
 
 Run the server:
 
 ```sh
-$ dart bin/server.dart
+dart bin/server.dart
 ```
 
 From a different terminal, run the client:
 
 ```sh
-$ dart bin/client.dart
+dart bin/client.dart
 ```
 
 ### Reporting issues

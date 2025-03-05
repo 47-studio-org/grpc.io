@@ -12,6 +12,8 @@ interchange format. If you’re new to gRPC and/or protocol buffers, read this!
 If you just want to dive in and see gRPC in action first,
 [select a language](/docs/languages/) and try its **Quick start**.
 
+{{< youtube id="njC24ts24Pg" class="youtube-video" title="gRPC in 5 minutes" >}}
+
 ## Overview
 
 In gRPC, a client application can directly call a method on a server application
@@ -89,10 +91,7 @@ message HelloReply {
 gRPC uses `protoc` with a special gRPC plugin to
 generate code from your proto file: you get
 generated gRPC client and server code, as well as the regular protocol buffer
-code for populating, serializing, and retrieving your message types. You'll
-see an example of this below.
-
-To learn more about protocol buffers, including how to install `protoc` with the
+code for populating, serializing, and retrieving your message types. To learn more about protocol buffers, including how to install `protoc` with the
 gRPC plugin in your chosen language, see the [protocol buffers documentation][protocol buffers].
 
 ## Protocol buffer versions
@@ -113,9 +112,9 @@ version), we recommend that you use proto3 with gRPC as it lets you use the
 full range of gRPC-supported languages, as well as avoiding compatibility
 issues with proto2 clients talking to proto3 servers and vice versa.
 
-[formal specification]: https://developers.google.com/protocol-buffers/docs/reference/proto3-spec
+[formal specification]: https://protobuf.dev/reference/protobuf/proto3-spec
 [golang/protobuf official package]: https://pkg.go.dev/google.golang.org/protobuf
-[proto3 language guide]: https://developers.google.com/protocol-buffers/docs/proto3
+[proto3 language guide]: https://protobuf.dev/programming-guides/proto3
 [protocol buffers GitHub repo]: https://github.com/google/protobuf/releases
-[protocol buffers]: https://developers.google.com/protocol-buffers/docs/overview
-[reference documentation]: https://developers.google.com/protocol-buffers/docs/reference/overview
+[protocol buffers]: https://protobuf.dev/overview
+[reference documentation]: https://protobuf.dev/reference

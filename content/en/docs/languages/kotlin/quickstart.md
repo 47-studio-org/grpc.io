@@ -18,13 +18,13 @@ The example code is part of the [grpc-kotlin][] repo.
     the repo:
 
     ```sh
-    $ git clone https://github.com/grpc/grpc-kotlin
+    git clone --depth 1 https://github.com/grpc/grpc-kotlin
     ```
 
  2. Change to the examples directory:
 
     ```sh
-    $ cd grpc-kotlin/examples
+    cd grpc-kotlin/examples
     ```
 
 ### Run the example
@@ -34,20 +34,20 @@ From the `examples` directory:
  1. Compile the client and server
 
     ```sh
-    $ ./gradlew installDist
+    ./gradlew installDist
     ```
 
  2. Run the server:
 
     ```sh
-    $ ./server/build/install/server/bin/hello-world-server
+    ./server/build/install/server/bin/hello-world-server
     Server started, listening on 50051
     ```
 
  3. From another terminal, run the client:
 
     ```sh
-    $ ./client/build/install/client/bin/hello-world-client
+    ./client/build/install/client/bin/hello-world-client
     Received: Hello world
     ```
 
@@ -109,7 +109,7 @@ Remember to save the file!
 
 ### Update the app
 
-When you build the example, the build process regenerates `HelloWorldGrpcKt.kt`,
+When you build the example, the build process regenerates `HelloWorldProtoGrpcKt.kt`,
 which contains the generated gRPC client and server classes. This also
 regenerates classes for populating, serializing, and retrieving our request and
 response types.
@@ -125,15 +125,13 @@ method like this:
 
 ```kotlin
 private class HelloWorldService : GreeterGrpcKt.GreeterCoroutineImplBase() {
-  override suspend fun sayHello(request: HelloRequest) = HelloReply
-      .newBuilder()
-      .setMessage("Hello ${request.name}")
-      .build()
+  override suspend fun sayHello(request: HelloRequest) = helloReply {
+    message = "Hello ${request.name}"
+  }
 
-    override suspend fun sayHelloAgain(request: HelloRequest) = HelloReply
-      .newBuilder()
-      .setMessage("Hello again ${request.name}")
-      .build()
+  override suspend fun sayHelloAgain(request: HelloRequest) = helloReply {
+    message = "Hello again ${request.name}"
+  }
 }
 ```
 
@@ -150,7 +148,7 @@ class HelloWorldClient(
   private val stub: GreeterCoroutineStub = GreeterCoroutineStub(channel)
 
   suspend fun greet(name: String) {
-    val request = HelloRequest.newBuilder().setName(name).build()
+    val request = helloRequest { this.name = name }
     val response = stub.sayHello(request)
     println("Received: ${response.message}")
     val againResponse = stub.sayHelloAgain(request)
@@ -171,13 +169,13 @@ from the `examples` directory:
  1. Compile the client and server:
 
     ```sh
-    $ ./gradlew installDist
+    ./gradlew installDist
     ```
 
  2. Run the server:
 
     ```sh
-    $ ./server/build/install/server/bin/hello-world-server
+    ./server/build/install/server/bin/hello-world-server
     Server started, listening on 50051
     ```
 
@@ -185,7 +183,7 @@ from the `examples` directory:
     command-line argument:
 
     ```sh
-    $ ./client/build/install/client/bin/hello-world-client Alice
+    ./client/build/install/client/bin/hello-world-client Alice
     Received: Hello Alice
     Received: Hello again Alice
     ```

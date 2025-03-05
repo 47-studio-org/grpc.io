@@ -27,7 +27,8 @@ The following authentication mechanisms are built-in to gRPC:
 - **ALTS**: gRPC supports
   [ALTS](https://cloud.google.com/security/encryption-in-transit/application-layer-transport-security)
   as a transport security mechanism, if the application is running on
-  [Google Cloud Platform (GCP)](https://cloud.google.com).
+  [Compute Engine](https://cloud.google.com/compute) or
+  [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine).
   For details, see one of the following
   language-specific pages:
   [ALTS in C++]({{< relref "docs/languages/cpp/alts" >}}),
@@ -111,6 +112,26 @@ passed to the factory method.
   configured for POSIX filesystems.
 {{% /alert %}}
 
+#### Using OAuth token-based authentication
+
+OAuth 2.0 Protocol is the industry-standard protocol for authorization. It enables
+websites or applications to obtain limited access to user accounts using OAuth tokens.
+
+gRPC offers a set of simple APIs to integrate OAuth 2.0 into applications, streamlining authentication.
+
+At a high level, using OAuth token-based authentication includes 3 steps:
+
+1. Get or generate an OAuth token on client side.
+   * You can generate Google-specific tokens following instructions below.
+2. Create credentials with the OAuth token.
+   * OAuth token is always part of per-call credentials, you can also attach the per-call credentials
+   to some channel credentials.
+   * The token will be sent to server, normally as part of HTTP Authorization header.
+3. Server side verifies the token.
+   * In most implementations, the validation is done using a server side interceptor.
+
+For details of how to use OAuth token in different languages, please refer to our examples below.
+
 #### Using Google token-based authentication
 
 gRPC applications can use a simple API to create a credential that works for
@@ -178,73 +199,53 @@ A deeper integration can be achieved by plugging in a gRPC credentials
 implementation at the core level. gRPC internals also allow switching out
 SSL/TLS with other encryption mechanisms.
 
-### Examples
+### Language guides and examples
 
 These authentication mechanisms will be available in all gRPC's supported
-languages. The following sections demonstrate how authentication and
-authorization features described above appear in each language: more languages
-are coming soon.
+languages. The following table links to examples demonstrating authentication
+and authorization in various languages.
 
-#### Go
+| Language | Example                                   | Documentation          |
+|----------|-------------------------------------------|------------------------|
+| C++      | N/A                                       | N/A                    |
+| Go       | [Go Example]                              | [Go Documentation]     |
+| Java     | [Java Example TLS] ([Java Example ATLS])  | [Java Documentation]   |
+| Python   | [Python Example]                          | [Python Documentation] |
 
-##### Base case - no encryption or authentication
 
-Client:
+[Go Example]: https://github.com/grpc/grpc-go/tree/master/examples/features/encryption
+[Go Documentation]: https://github.com/grpc/grpc-go/tree/master/examples/features/encryption#encryption
+[Java Example TLS]: https://github.com/grpc/grpc-java/tree/master/examples/example-tls
+[Java Example ATLS]: https://github.com/grpc/grpc-java/tree/master/examples/example-alts
+[Java Documentation]: https://github.com/grpc/grpc-java/tree/master/examples/example-tls#hello-world-example-with-tls
+[Python Example]: https://github.com/grpc/grpc/tree/master/examples/python/auth
+[Python Documentation]: https://github.com/grpc/grpc/tree/master/examples/python/auth#authentication-extension-example-in-grpc-python
 
-``` go
-conn, _ := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
-// error handling omitted
-client := pb.NewGreeterClient(conn)
-// ...
-```
+### Language guides and examples for OAuth token-based authentication
 
-Server:
+The following table links to examples demonstrating OAuth token-based
+authentication and authorization in various languages.
 
-``` go
-s := grpc.NewServer()
-lis, _ := net.Listen("tcp", "localhost:50051")
-// error handling omitted
-s.Serve(lis)
-```
+| Language | Example                                   | Documentation                 |
+|----------|-------------------------------------------|-------------------------------|
+| C++      | N/A                                       | N/A                           |
+| Go       | [Go OAuth Example]                        | [Go OAuth Documentation]      |
+| Java     | [Java OAuth Example]                      | [Java OAuth Documentation]    |
+| Python   | [Python OAuth Example]                    | [Python OAuth Documentation]  |
 
-##### With server authentication SSL/TLS
 
-Client:
+[Go OAuth Example]: https://github.com/grpc/grpc-go/tree/master/examples/features/authentication#authentication
+[Go OAuth Documentation]: https://github.com/grpc/grpc-go/tree/master/examples/features/authentication#oauth2
+[Java OAuth Example]: https://github.com/grpc/grpc-java/tree/master/examples/example-oauth#authentication-example
+[Java OAuth Documentation]: https://github.com/grpc/grpc-java/tree/master/examples/example-oauth
+[Python OAuth Example]: https://github.com/grpc/grpc/blob/master/examples/python/auth/token_based_auth_client.py
+[Python OAuth Documentation]: https://github.com/grpc/grpc/tree/master/examples/python/auth#token-based-authentication
 
-``` go
-creds, _ := credentials.NewClientTLSFromFile(certFile, "")
-conn, _ := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(creds))
-// error handling omitted
-client := pb.NewGreeterClient(conn)
-// ...
-```
 
-Server:
+### Additional Examples
 
-``` go
-creds, _ := credentials.NewServerTLSFromFile(certFile, keyFile)
-s := grpc.NewServer(grpc.Creds(creds))
-lis, _ := net.Listen("tcp", "localhost:50051")
-// error handling omitted
-s.Serve(lis)
-```
-
-##### Authenticate with Google
-
-``` go
-pool, _ := x509.SystemCertPool()
-// error handling omitted
-creds := credentials.NewClientTLSFromCert(pool, "")
-perRPC, _ := oauth.NewServiceAccountFromFile("service-account.json", scope)
-conn, _ := grpc.Dial(
-	"greeter.googleapis.com",
-	grpc.WithTransportCredentials(creds),
-	grpc.WithPerRPCCredentials(perRPC),
-)
-// error handling omitted
-client := pb.NewGreeterClient(conn)
-// ...
-```
+The following sections demonstrate how authentication and authorization features
+described above appear in other languages not listed above.
 
 #### Ruby
 
@@ -273,303 +274,6 @@ authentication = Google::Auth.get_application_default()
 call_creds = GRPC::Core::CallCredentials.new(authentication.updater_proc)
 combined_creds = ssl_creds.compose(call_creds)
 stub = Helloworld::Greeter::Stub.new('greeter.googleapis.com', combined_creds)
-```
-
-#### C++
-
-##### Base case - no encryption or authentication
-```cpp
-auto channel = grpc::CreateChannel("localhost:50051", InsecureChannelCredentials());
-std::unique_ptr<Greeter::Stub> stub(Greeter::NewStub(channel));
-...
-```
-
-##### With server authentication SSL/TLS
-
-```cpp
-auto channel_creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
-auto channel = grpc::CreateChannel("myservice.example.com", channel_creds);
-std::unique_ptr<Greeter::Stub> stub(Greeter::NewStub(channel));
-...
-```
-
-##### Authenticate with Google
-
-```cpp
-auto creds = grpc::GoogleDefaultCredentials();
-auto channel = grpc::CreateChannel("greeter.googleapis.com", creds);
-std::unique_ptr<Greeter::Stub> stub(Greeter::NewStub(channel));
-...
-```
-
-#### C# {#csharp}
-
-##### Base case - no encryption or authentication
-
-```csharp
-var channel = new Channel("localhost:50051", ChannelCredentials.Insecure);
-var client = new Greeter.GreeterClient(channel);
-...
-```
-
-##### With server authentication SSL/TLS
-
-```csharp
-var channelCredentials = new SslCredentials(File.ReadAllText("roots.pem"));  // Load a custom roots file.
-var channel = new Channel("myservice.example.com", channelCredentials);
-var client = new Greeter.GreeterClient(channel);
-```
-
-##### Authenticate with Google
-
-
-```csharp
-using Grpc.Auth;  // from Grpc.Auth NuGet package
-...
-// Loads Google Application Default Credentials with publicly trusted roots.
-var channelCredentials = await GoogleGrpcCredentials.GetApplicationDefaultAsync();
-
-var channel = new Channel("greeter.googleapis.com", channelCredentials);
-var client = new Greeter.GreeterClient(channel);
-...
-```
-
-##### Authenticate a single RPC call
-
-```csharp
-var channel = new Channel("greeter.googleapis.com", new SslCredentials());  // Use publicly trusted roots.
-var client = new Greeter.GreeterClient(channel);
-...
-var googleCredential = await GoogleCredential.GetApplicationDefaultAsync();
-var result = client.SayHello(request, new CallOptions(credentials: googleCredential.ToCallCredentials()));
-...
-
-```
-
-#### Python
-
-##### Base case - No encryption or authentication
-
-```python
-import grpc
-import helloworld_pb2
-
-channel = grpc.insecure_channel('localhost:50051')
-stub = helloworld_pb2.GreeterStub(channel)
-```
-
-##### With server authentication SSL/TLS
-
-Client:
-
-```python
-import grpc
-import helloworld_pb2
-
-with open('roots.pem', 'rb') as f:
-    creds = grpc.ssl_channel_credentials(f.read())
-channel = grpc.secure_channel('myservice.example.com:443', creds)
-stub = helloworld_pb2.GreeterStub(channel)
-```
-
-Server:
-
-```python
-import grpc
-import helloworld_pb2
-from concurrent import futures
-
-server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-with open('key.pem', 'rb') as f:
-    private_key = f.read()
-with open('chain.pem', 'rb') as f:
-    certificate_chain = f.read()
-server_credentials = grpc.ssl_server_credentials( ( (private_key, certificate_chain), ) )
-# Adding GreeterServicer to server omitted
-server.add_secure_port('myservice.example.com:443', server_credentials)
-server.start()
-# Server sleep omitted
-```
-
-##### Authenticate with Google using a JWT
-
-```python
-import grpc
-import helloworld_pb2
-
-from google import auth as google_auth
-from google.auth import jwt as google_auth_jwt
-from google.auth.transport import grpc as google_auth_transport_grpc
-
-credentials, _ = google_auth.default()
-jwt_creds = google_auth_jwt.OnDemandCredentials.from_signing_credentials(
-    credentials)
-channel = google_auth_transport_grpc.secure_authorized_channel(
-    jwt_creds, None, 'greeter.googleapis.com:443')
-stub = helloworld_pb2.GreeterStub(channel)
-```
-
-##### Authenticate with Google using an Oauth2 token
-
-```python
-import grpc
-import helloworld_pb2
-
-from google import auth as google_auth
-from google.auth.transport import grpc as google_auth_transport_grpc
-from google.auth.transport import requests as google_auth_transport_requests
-
-credentials, _ = google_auth.default(scopes=(scope,))
-request = google_auth_transport_requests.Request()
-channel = google_auth_transport_grpc.secure_authorized_channel(
-    credentials, request, 'greeter.googleapis.com:443')
-stub = helloworld_pb2.GreeterStub(channel)
-```
-
-##### With server authentication SSL/TLS and a custom header with token
-
-Client:
-
-```python
-import grpc
-import helloworld_pb2
-
-class GrpcAuth(grpc.AuthMetadataPlugin):
-    def __init__(self, key):
-        self._key = key
-
-    def __call__(self, context, callback):
-        callback((('rpc-auth-header', self._key),), None)
-
-with open('path/to/root-cert', 'rb') as fh:
-    root_cert = fh.read()
-
-channel = grpc.secure_channel(
-    'myservice.example.com:443',
-    grpc.composite_channel_credentials(
-        grpc.ssl_channel_credentials(root_cert),
-        grpc.metadata_call_credentials(
-            GrpcAuth('access_key')
-        )
-    )
-)
-
-stub = helloworld_pb2.GreeterStub(channel)
-```
-
-Server:
-
-```python
-from concurrent import futures
-
-import grpc
-import helloworld_pb2
-
-class AuthInterceptor(grpc.ServerInterceptor):
-    def __init__(self, key):
-        self._valid_metadata = ('rpc-auth-header', key)
-
-        def deny(_, context):
-            context.abort(grpc.StatusCode.UNAUTHENTICATED, 'Invalid key')
-
-        self._deny = grpc.unary_unary_rpc_method_handler(deny)
-
-    def intercept_service(self, continuation, handler_call_details):
-        meta = handler_call_details.invocation_metadata
-
-        if meta and meta[0] == self._valid_metadata:
-            return continuation(handler_call_details)
-        else:
-            return self._deny
-
-server = grpc.server(
-    futures.ThreadPoolExecutor(max_workers=10),
-    interceptors=(AuthInterceptor('access_key'),)
-)
-with open('key.pem', 'rb') as f:
-    private_key = f.read()
-with open('chain.pem', 'rb') as f:
-    certificate_chain = f.read()
-server_credentials = grpc.ssl_server_credentials( ( (private_key, certificate_chain), ) )
-# Adding GreeterServicer to server omitted
-server.add_secure_port('myservice.example.com:443', server_credentials)
-server.start()
-# Server sleep omitted
-```
-
-#### Java
-
-##### Base case - no encryption or authentication
-
-```java
-ManagedChannel channel = Grpc.newChannelBuilder(
-        "localhost:50051", InsecureChannelCredentials.create())
-    .build();
-GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
-
-```
-
-##### With server authentication SSL/TLS
-
-In Java we recommend that you use netty-tcnative with BoringSSL when using gRPC
-over TLS. You can find details about installing and using netty-tcnative and
-other required libraries for both Android and non-Android Java in the gRPC Java
-[Security](https://github.com/grpc/grpc-java/blob/master/SECURITY.md#transport-security-tls)
-documentation.
-
-To enable TLS on a server, a certificate chain and private key need to be
-specified in PEM format. Such private key should not be using a password.
-The order of certificates in the chain matters: more specifically, the certificate
-at the top has to be the host CA, while the one at the very bottom
-has to be the root CA. The standard TLS port is 443, but we use 8443 below to
-avoid needing extra permissions from the OS.
-
-```java
-ServerCredentials creds = TlsServerCredentials.create(certChainFile, privateKeyFile);
-Server server = Grpc.newServerBuilderForPort(8443, creds)
-    .addService(TestServiceGrpc.bindService(serviceImplementation))
-    .build();
-server.start();
-```
-
-If the issuing certificate authority is not known to the client then
-it can be configured using `TlsChannelCredentials.newBuilder()`.
-
-On the client side, server authentication with SSL/TLS looks like this:
-
-```java
-// With server authentication SSL/TLS
-ManagedChannel channel = Grpc.newChannelBuilder(
-        "myservice.example.com:443", TlsChannelCredentials.create())
-    .build();
-GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
-
-// With server authentication SSL/TLS; custom CA root certificates
-ChannelCredentials creds = TlsChannelCredentials.newBuilder()
-    .trustManager(new File("roots.pem"))
-    .build();
-ManagedChannel channel = Grpc.newChannelBuilder("myservice.example.com:443", creds)
-    .build();
-GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
-```
-
-##### Authenticate with Google
-
-The following code snippet shows how you can call the [Google Cloud PubSub
-API](https://cloud.google.com/pubsub/overview) using gRPC with a service
-account. The credentials are loaded from a key stored in a well-known location
-or by detecting that the application is running in an environment that can
-provide one automatically, e.g. Google Compute Engine. While this example is
-specific to Google and its services, similar patterns can be followed for other
-service providers.
-
-```java
-ChannelCredentials creds = CompositeChannelCredentials.create(
-    TlsChannelCredentials.create(),
-    MoreCallCredentials.from(GoogleCredentials.getApplicationDefault()));
-ManagedChannel channel = ManagedChannelBuilder.forTarget("greeter.googleapis.com", creds)
-    .build();
-GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
 ```
 
 #### Node.js
@@ -602,7 +306,7 @@ var ssl_creds = grpc.credentials.createSsl(root_certs);
 });
 ```
 
-##### Authenticate with Google using Oauth2 token (legacy approach)
+##### Authenticate with Google using OAuth2 token (legacy approach)
 
 ```js
 var GoogleAuth = require('google-auth-library'); // from https://www.npmjs.com/package/google-auth-library
@@ -670,7 +374,7 @@ $opts = [
 $client = new helloworld\GreeterClient('greeter.googleapis.com', $opts);
 ```
 
-##### Authenticate with Google using Oauth2 token (legacy approach)
+##### Authenticate with Google using OAuth2 token (legacy approach)
 
 ```php
 // the environment variable "GOOGLE_APPLICATION_CREDENTIALS" needs to be set

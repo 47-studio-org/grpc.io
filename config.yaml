@@ -1,5 +1,6 @@
 baseURL: https://grpc.io/
 disableKinds: [taxonomy, term]
+googleAnalytics: G-8H17ZWYV40
 
 theme: [docsy]
 
@@ -17,6 +18,7 @@ enableGitInfo: true
 enableRobotsTXT: true
 
 params:
+  gtmID: "GTM-55D2HXLW"
   copyright: gRPC Authors
   repo: &repo https://github.com/grpc/grpc.io
   github_repo: *repo
@@ -25,9 +27,10 @@ params:
   branch: main
   locale: en_US
   grpc_vers:
-    core: v1.43.0
-    go: v1.43.0
-    java: v1.44.1
+    core: v1.66.0
+    go: v1.71.0
+    java: v1.70.0
+    node: "@grpc/grpc-js@1.9.0"
   font_awesome_version: 5.12.1
   gcs_engine_id: 788f3b1ec3a111a2f
   ui:
@@ -59,10 +62,17 @@ params:
       - name: Gitter
         url: https://gitter.im/grpc/grpc
         icon: fab fa-gitter
+      - name: YouTube
+        url: https://www.youtube.com/@grpcio
+        icon: fab fa-youtube
     developer:
       - name: GitHub
         url: https://github.com/grpc
         icon: fab fa-github
+
+  mermaid:
+    enable: true
+    theme: "neutral"
 
 markup:
   goldmark:

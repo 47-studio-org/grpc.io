@@ -9,17 +9,17 @@ to working with gRPC.
 
 By walking through this example you'll learn how to:
 
-- Define a service in a .proto file.
+- Define a service in a `.proto` file.
 - Generate server and client code using the protocol buffer compiler.
 - Use the Python gRPC API to write a simple client and server for your service.
 
 It assumes that you have read the [Introduction to gRPC](/docs/what-is-grpc/introduction/) and are familiar
 with [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). You can
+buffers](https://protobuf.dev/overview). You can
 find out more in the [proto3 language
-guide](https://developers.google.com/protocol-buffers/docs/proto3) and [Python
+guide](https://protobuf.dev/programming-guides/proto3) and [Python
 generated code
-guide](https://developers.google.com/protocol-buffers/docs/reference/python-generated).
+guide](https://protobuf.dev/reference/python/python-generated).
 
 ### Why use gRPC?
 
@@ -33,13 +33,13 @@ To download the example, clone the `grpc` repository by running the following
 command:
 
 ```sh
-$ git clone -b {{< param grpc_vers.core >}} https://github.com/grpc/grpc
+git clone -b {{< param grpc_vers.core >}} --depth 1 --shallow-submodules https://github.com/grpc/grpc
 ```
 
 Then change your current directory to `examples/python/route_guide` in the repository:
 
 ```sh
-$ cd grpc/examples/python/route_guide
+cd grpc/examples/python/route_guide
 ```
 
 You also should have the relevant tools installed to generate the server and
@@ -51,11 +51,11 @@ client interface code - if you don't already, follow the setup instructions in
 Your first step (as you'll know from the [Introduction to gRPC](/docs/what-is-grpc/introduction/)) is to
 define the gRPC *service* and the method *request* and *response* types using
 [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). You can
-see the complete .proto file in
+buffers](https://protobuf.dev/overview). You can
+see the complete `.proto` file in
 [`examples/protos/route_guide.proto`](https://github.com/grpc/grpc/blob/{{< param grpc_vers.core >}}/examples/protos/route_guide.proto).
 
-To define a service, you specify a named `service` in your .proto file:
+To define a service, you specify a named `service` in your `.proto` file:
 
 ```protobuf
 service RouteGuide {
@@ -133,19 +133,19 @@ message Point {
 
 ### Generating client and server code
 
-Next you need to generate the gRPC client and server interfaces from your .proto
+Next you need to generate the gRPC client and server interfaces from your `.proto`
 service definition.
 
 First, install the grpcio-tools package:
 
 ```sh
-$ pip install grpcio-tools
+pip install grpcio-tools
 ```
 
 Use the following command to generate the Python code:
 
 ```sh
-$ python -m grpc_tools.protoc -I../../protos --python_out=. --grpc_python_out=. ../../protos/route_guide.proto
+python -m grpc_tools.protoc -I../../protos --python_out=. --pyi_out=. --grpc_python_out=. ../../protos/route_guide.proto
 ```
 
 Note that as we've already provided a version of the generated code in the
@@ -153,18 +153,43 @@ example directory, running this command regenerates the appropriate file rather
 than creates a new one. The generated code files are called
 `route_guide_pb2.py` and `route_guide_pb2_grpc.py` and contain:
 
-- classes for the messages defined in route_guide.proto
-- classes for the service defined in route_guide.proto
+- classes for the messages defined in `route_guide.proto`
+- classes for the service defined in `route_guide.proto`
    - `RouteGuideStub`, which can be used by clients to invoke RouteGuide RPCs
    - `RouteGuideServicer`, which defines the interface for implementations
      of the RouteGuide service
-- a function for the service defined in route_guide.proto
+- a function for the service defined in `route_guide.proto`
    - `add_RouteGuideServicer_to_server`, which adds a RouteGuideServicer to
      a `grpc.Server`
 
 {{% alert title="Note" color="info" %}}
-The `2` in pb2 indicates that the generated code is following Protocol Buffers Python API version 2. Version 1 is obsolete. It has no relation to the Protocol Buffers Language version, which is the one indicated by `syntax = "proto3"` or `syntax = "proto2"` in a .proto file.
+The `2` in pb2 indicates that the generated code is following Protocol Buffers Python API version 2. Version 1 is obsolete. It has no relation to the Protocol Buffers Language version, which is the one indicated by `syntax = "proto3"` or `syntax = "proto2"` in a `.proto` file.
 {{% /alert %}}
+
+#### Generating gRPC interfaces with custom package path
+
+To generate gRPC client interfaces with a custom package path, you can use the `-I` parameter along with the `grpc_tools.protoc` command. This approach allows you to specify a custom package name for the generated files.
+
+Here's an example command to generate the gRPC client interfaces with a custom package path:
+
+```sh
+python -m grpc_tools.protoc -Igrpc/example/custom/path=../../protos \
+  --python_out=. --grpc_python_out=. \
+  ../../protos/route_guide.proto
+```
+
+The generated files will be placed in the `./grpc/example/custom/path/` directory:
+
+- `./grpc/example/custom/path/route_guide_pb2.py`
+- `./grpc/example/custom/path/route_guide_pb2_grpc.py`
+
+With this setup, the generated `route_guide_pb2_grpc.py` file will correctly import the protobuf definitions using the custom package structure, as shown below:
+
+```python
+import grpc.example.custom.path.route_guide_pb2 as route_guide_pb2
+```
+
+By following this approach, you can ensure that the files will call each other correctly with respect to the specified package path. This method allows you to maintain a custom package structure for your gRPC client interfaces.
 
 ### Creating the server {#server}
 
@@ -202,11 +227,11 @@ database in a `Feature`.
 
 ```python
 def GetFeature(self, request, context):
-  feature = get_feature(self.db, request)
-  if feature is None:
-    return route_guide_pb2.Feature(name="", location=request)
-  else:
-    return feature
+    feature = get_feature(self.db, request)
+    if feature is None:
+        return route_guide_pb2.Feature(name="", location=request)
+    else:
+        return feature
 ```
 
 The method is passed a `route_guide_pb2.Point` request for the RPC, and a
@@ -220,16 +245,18 @@ that sends multiple `Feature`s to the client.
 
 ```python
 def ListFeatures(self, request, context):
-  left = min(request.lo.longitude, request.hi.longitude)
-  right = max(request.lo.longitude, request.hi.longitude)
-  top = max(request.lo.latitude, request.hi.latitude)
-  bottom = min(request.lo.latitude, request.hi.latitude)
-  for feature in self.db:
-    if (feature.location.longitude >= left and
-        feature.location.longitude <= right and
-        feature.location.latitude >= bottom and
-        feature.location.latitude <= top):
-      yield feature
+    left = min(request.lo.longitude, request.hi.longitude)
+    right = max(request.lo.longitude, request.hi.longitude)
+    top = max(request.lo.latitude, request.hi.latitude)
+    bottom = min(request.lo.latitude, request.hi.latitude)
+    for feature in self.db:
+        if (
+            feature.location.longitude >= left
+            and feature.location.longitude <= right
+            and feature.location.latitude >= bottom
+            and feature.location.latitude <= top
+        ):
+            yield feature
 ```
 
 Here the request message is a `route_guide_pb2.Rectangle` within which the
@@ -239,30 +266,32 @@ method yields zero or more responses.
 ##### Request-streaming RPC
 
 The request-streaming method `RecordRoute` uses an
-[iterator](https://docs.python.org/2/library/stdtypes.html#iterator-types) of
+[iterator](https://docs.python.org/3/library/stdtypes.html#iterator-types) of
 request values and returns a single response value.
 
 ```python
 def RecordRoute(self, request_iterator, context):
-  point_count = 0
-  feature_count = 0
-  distance = 0.0
-  prev_point = None
+    point_count = 0
+    feature_count = 0
+    distance = 0.0
+    prev_point = None
 
-  start_time = time.time()
-  for point in request_iterator:
-    point_count += 1
-    if get_feature(self.db, point):
-      feature_count += 1
-    if prev_point:
-      distance += get_distance(prev_point, point)
-    prev_point = point
+    start_time = time.time()
+    for point in request_iterator:
+        point_count += 1
+        if get_feature(self.db, point):
+            feature_count += 1
+        if prev_point:
+            distance += get_distance(prev_point, point)
+        prev_point = point
 
-  elapsed_time = time.time() - start_time
-  return route_guide_pb2.RouteSummary(point_count=point_count,
-                                      feature_count=feature_count,
-                                      distance=int(distance),
-                                      elapsed_time=int(elapsed_time))
+    elapsed_time = time.time() - start_time
+    return route_guide_pb2.RouteSummary(
+        point_count=point_count,
+        feature_count=feature_count,
+        distance=int(distance),
+        elapsed_time=int(elapsed_time),
+    )
 ```
 
 ##### Bidirectional streaming RPC
@@ -271,12 +300,12 @@ Lastly let's look at the bidirectionally-streaming method `RouteChat`.
 
 ```python
 def RouteChat(self, request_iterator, context):
-  prev_notes = []
-  for new_note in request_iterator:
-    for prev_note in prev_notes:
-      if prev_note.location == new_note.location:
-        yield prev_note
-    prev_notes.append(new_note)
+    prev_notes = []
+    for new_note in request_iterator:
+        for prev_note in prev_notes:
+            if prev_note.location == new_note.location:
+                yield prev_note
+        prev_notes.append(new_note)
 ```
 
 This method's semantics are a combination of those of the request-streaming
@@ -290,12 +319,11 @@ start up a gRPC server so that clients can actually use your service:
 
 ```python
 def serve():
-  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-  route_guide_pb2_grpc.add_RouteGuideServicer_to_server(
-      RouteGuideServicer(), server)
-  server.add_insecure_port('[::]:50051')
-  server.start()
-  server.wait_for_termination()
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    route_guide_pb2_grpc.add_RouteGuideServicer_to_server(RouteGuideServicer(), server)
+    server.add_insecure_port("[::]:50051")
+    server.start()
+    server.wait_for_termination()
 ```
 
 The server `start()` method is non-blocking. A new thread will be instantiated
@@ -314,7 +342,7 @@ You can see the complete example client code in
 To call service methods, we first need to create a *stub*.
 
 We instantiate the `RouteGuideStub` class of the `route_guide_pb2_grpc`
-module, generated from our .proto.
+module, generated from our `.proto`.
 
 ```python
 channel = grpc.insecure_channel('localhost:50051')
@@ -386,12 +414,11 @@ for received_route_note in stub.RouteChat(sent_route_note_iterator):
 Run the server:
 
 ```sh
-$ python route_guide_server.py
+python route_guide_server.py
 ```
 
 From a different terminal, run the client:
 
 ```sh
-$ python route_guide_client.py
+python route_guide_client.py
 ```
-

@@ -15,12 +15,12 @@ By walking through this example you'll learn how to:
 - Use the Go gRPC API to write a simple client and server for your service.
 
 It assumes that you have read the [Introduction to gRPC](/docs/what-is-grpc/introduction/) and are familiar with
-[protocol buffers](https://developers.google.com/protocol-buffers/docs/overview).
+[protocol buffers](https://protobuf.dev/overview).
 Note that the example in this tutorial uses the proto3 version of the protocol
 buffers language: you can find out more in the [proto3 language
-guide](https://developers.google.com/protocol-buffers/docs/proto3) and the
+guide](https://protobuf.dev/programming-guides/proto3) and the
 [Go generated code
-guide](https://developers.google.com/protocol-buffers/docs/reference/go-generated).
+guide](https://protobuf.dev/reference/go/go-generated).
 
 ### Why use gRPC?
 
@@ -40,24 +40,24 @@ The example code is part of the [grpc-go][] repo.
     the repo:
 
     ```sh
-    $ git clone -b {{< param grpc_vers.go >}} https://github.com/grpc/grpc-go
+    git clone -b {{< param grpc_vers.go >}} --depth 1 https://github.com/grpc/grpc-go
     ```
 
  2. Change to the example directory:
 
     ```sh
-    $ cd grpc-go/examples/route_guide
+    cd grpc-go/examples/route_guide
     ```
 
 ### Defining the service
 
 Our first step (as you'll know from the [Introduction to gRPC](/docs/what-is-grpc/introduction/)) is to
 define the gRPC *service* and the method *request* and *response* types using
-[protocol buffers](https://developers.google.com/protocol-buffers/docs/overview).
+[protocol buffers](https://protobuf.dev/overview).
 For the complete `.proto` file, see
 [routeguide/route_guide.proto](https://github.com/grpc/grpc-go/blob/master/examples/route_guide/routeguide/route_guide.proto).
 
-To define a service, you specify a named `service` in your .proto file:
+To define a service, you specify a named `service` in your `.proto` file:
 
 ```proto
 service RouteGuide {
@@ -118,7 +118,7 @@ all of which are used in the `RouteGuide` service:
   rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
   ```
 
-Our .proto file also contains protocol buffer message type definitions for all
+Our `.proto` file also contains protocol buffer message type definitions for all
 the request and response types used in our service methods - for example, here's
 the `Point` message type:
 
@@ -142,7 +142,7 @@ a special gRPC Go plugin. This is similar to what we did in the [Quick start][].
 From the `examples/route_guide` directory, run the following command:
 
 ```sh
-$ protoc --go_out=. --go_opt=paths=source_relative \
+protoc --go_out=. --go_opt=paths=source_relative \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     routeguide/route_guide.proto
 ```
@@ -229,7 +229,7 @@ func (s *routeGuideServer) GetFeature(ctx context.Context, point *pb.Point) (*pb
 The method is passed a context object for the RPC and the client's `Point`
 protocol buffer request. It returns a `Feature` protocol buffer object with the
 response information and an `error`. In the method we populate the `Feature`
-with the appropriate information, and then `return` it along with an `nil` error
+with the appropriate information, and then `return` it along with a `nil` error
 to tell gRPC that we've finished dealing with the RPC and that the `Feature` can
 be returned to the client.
 
@@ -359,8 +359,7 @@ so that clients can actually use our service. The following snippet shows how we
 do this for our `RouteGuide` service:
 
 ```go
-flag.Parse()
-lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
 if err != nil {
   log.Fatalf("failed to listen: %v", err)
 }
@@ -390,12 +389,12 @@ service. You can see our complete example client code in
 
 To call service methods, we first need to create a gRPC *channel* to communicate
 with the server. We create this by passing the server address and port number to
-`grpc.Dial()` as follows:
+`grpc.NewClient()` as follows:
 
 ```go
 var opts []grpc.DialOption
 ...
-conn, err := grpc.Dial(*serverAddr, opts...)
+conn, err := grpc.NewClient(*serverAddr, opts...)
 if err != nil {
   ...
 }
@@ -403,8 +402,8 @@ defer conn.Close()
 ```
 
 You can use `DialOptions` to set the auth credentials (for example, TLS, GCE
-credentials, or JWT credentials) in `grpc.Dial` when a service requires them.
-The `RouteGuide` service doesn't require any credentials.
+credentials, or JWT credentials) in `grpc.NewClient` when a service requires
+them. The `RouteGuide` service doesn't require any credentials.
 
 Once the gRPC *channel* is setup, we need a client *stub* to perform RPCs. We
 get it using the `NewRouteGuideClient` method provided by the `pb` package
@@ -567,13 +566,13 @@ Execute the following commands from the `examples/route_guide` directory:
  1. Run the server:
 
     ```sh
-    $ go run server/server.go
+    go run server/server.go
     ```
 
  2. From another terminal, run the client:
 
     ```sh
-    $ go run client/client.go
+    go run client/client.go
     ```
 
 You'll see output like this:

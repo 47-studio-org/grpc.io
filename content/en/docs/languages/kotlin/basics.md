@@ -34,13 +34,13 @@ The example code is part of the [grpc-kotlin][] repo.
     the repo:
 
     ```sh
-    $ git clone https://github.com/grpc/grpc-kotlin
+    git clone --depth 1 https://github.com/grpc/grpc-kotlin
     ```
 
  2. Change to the examples directory:
 
     ```sh
-    $ cd grpc-kotlin/examples
+    cd grpc-kotlin/examples
     ```
 
 ### Defining the service
@@ -190,7 +190,7 @@ class RouteGuideService(
 }
 ```
 
-#### Simple RPC
+##### Simple RPC
 
 `RouteGuideService` implements all the service methods. Consider the simplest
 method first, `GetFeature()`, which gets a `Point` from the client and returns a
@@ -312,8 +312,8 @@ fun main(args: Array<String>) {
   val port = 8980
   val server = RouteGuideServer(port)
   server.start()
-  /* ... */
-}
+  server.awaitTermination()
+ }
 ```
 
 A server instance is built and started using a `ServerBuilder` as follows:
@@ -324,6 +324,8 @@ A server instance is built and started using a `ServerBuilder` as follows:
    and pass it to the builder's `addService()` method.
 1. Call `build()` and `start()` on the builder to create and start an RPC server
    for the route guide service.
+1. Call `awaitTermination()` on the server to block the main function until 
+   the application receives a signal to terminate.
 
 ### Creating the client {#client}
 
@@ -472,20 +474,20 @@ Run the following commands from the `grpc-kotlin/examples` directory:
  1. Compile the client and server
 
     ```sh
-    $ ./gradlew installDist
+    ./gradlew installDist
     ```
 
  2. Run the server:
 
     ```sh
-    $ ./server/build/install/server/bin/route-guide-server
+    ./server/build/install/server/bin/route-guide-server
     Server started, listening on 8980
     ```
 
  3. From another terminal, run the client:
 
     ```sh
-    $ ./client/build/install/client/bin/route-guide-client
+    ./client/build/install/client/bin/route-guide-client
     ```
 
 You'll see client output like this:
@@ -533,7 +535,7 @@ Finished RouteChat
 [Flow]: https://kotlinlang.org/docs/reference/coroutines/flow.html#flows
 [grpc-kotlin]: https://github.com/grpc/grpc-kotlin
 [Introduction to gRPC]: /docs/what-is-grpc/introduction/
-[proto3]: https://developers.google.com/protocol-buffers/docs/proto3
+[proto3]: https://protobuf.dev/programming-guides/proto3
 [Prerequisites]: ../quickstart/#prerequisites
 [protos-src]: https://github.com/grpc/grpc-kotlin/tree/master/examples/protos/src/main/proto/io/grpc/examples
 [Quick start]: ../quickstart/

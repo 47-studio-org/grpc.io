@@ -14,13 +14,13 @@ By walking through this example you'll learn how to:
 - Use the Objective-C gRPC API to write a simple client for your service.
 
 It assumes a passing familiarity with [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). Note
+buffers](https://protobuf.dev/overview). Note
 that the example in this tutorial uses the proto3 version of the protocol
 buffers language: you can find out more in
 the [proto3 language
-guide](https://developers.google.com/protocol-buffers/docs/proto3) and the
+guide](https://protobuf.dev/programming-guides/proto3) and the
 [Objective-C generated code
-guide](https://developers.google.com/protocol-buffers/docs/reference/objective-c-generated).
+guide](https://protobuf.dev/reference/objective-c/objective-c-generated).
 
 ### Why use gRPC?
 
@@ -34,15 +34,15 @@ To download the example, clone the `grpc` repository by running the following
 commands:
 
 ```sh
-$ git clone -b {{< param grpc_vers.core >}} https://github.com/grpc/grpc
-$ cd grpc
-$ git submodule update --init
+git clone -b {{< param grpc_vers.core >}} --depth 1 --shallow-submodules https://github.com/grpc/grpc
+cd grpc
+git submodule update --init
 ```
 
 Then change your current directory to `examples/objective-c/route_guide`:
 
 ```sh
-$ cd examples/objective-c/route_guide
+cd examples/objective-c/route_guide
 ```
 
 Our example is a simple route mapping application that lets clients get
@@ -61,16 +61,16 @@ To try the sample app, we need a gRPC server running locally. Let's compile and
 run, for example, the C++ server in this repository:
 
 ```sh
-$ pushd ../../cpp/route_guide
-$ make
-$ ./route_guide_server &
-$ popd
+pushd ../../cpp/route_guide
+make
+./route_guide_server &
+popd
 ```
 
 Now have Cocoapods generate and install the client library for our .proto files:
 
 ```sh
-$ pod install
+pod install
 ```
 
 (This might have to compile OpenSSL, which takes around 15 minutes if Cocoapods
@@ -88,7 +88,7 @@ uses that library.
 
 First let's look at how the service we're using is defined. A gRPC *service* and
 its method *request* and *response* types using [protocol
-buffers](https://developers.google.com/protocol-buffers/docs/overview). You can
+buffers](https://protobuf.dev/overview). You can
 see the complete .proto file for our example in
 [`examples/protos/route_guide.proto`](https://github.com/grpc/grpc/blob/{{< param grpc_vers.core >}}/examples/protos/route_guide.proto).
 
@@ -186,13 +186,13 @@ describes how to compile the generated files. You just need to run in this
 directory (`examples/objective-c/route_guide`):
 
 ```sh
-$ pod install
+pod install
 ```
 
 which, before installing the generated library in the XCode project of this sample, runs:
 
 ```sh
-$ protoc -I ../../protos --objc_out=Pods/RouteGuide --objcgrpc_out=Pods/RouteGuide ../../protos/route_guide.proto
+protoc -I ../../protos --objc_out=Pods/RouteGuide --objcgrpc_out=Pods/RouteGuide ../../protos/route_guide.proto
 ```
 
 Running this command generates the following files under `Pods/RouteGuide/`:
